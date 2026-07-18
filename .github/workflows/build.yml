@@ -13,15 +13,8 @@ jobs:
 
       - name: Descomprimir el proyecto subido
         run: |
-          # Busca cualquier archivo .zip en el repositorio y lo descomprime
           ZIP_FILE=$(find . -maxdepth 1 -name "*.zip" | head -n 1)
-          if [ -n "$ZIP_FILE" ]; then
-            echo "Descomprimiendo $ZIP_FILE..."
-            unzip -o "$ZIP_FILE" -d ExtractedProject
-          else
-            echo "No se encontró ningún archivo .zip"
-            exit 1
-          fi
+          unzip -o "$ZIP_FILE" -d ExtractedProject
 
       - name: Configurar JDK 17
         uses: actions/setup-java@v4
@@ -35,19 +28,16 @@ jobs:
       - name: Instalar plataforma y build-tools
         run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
-      - name: Buscar código fuente y compilar
+      - name: Compilar APK usando Gradle Wrapper
         run: |
-          # Busca dónde está el archivo settings.gradle y compila ahí
-          GRADLE_DIR=$(find ExtractedProject -name "settings.gradle" -exec dirname {} \;)
-          if [ -n "$GRADLE_DIR" ]; then
-            cd "$GRADLE_DIR"
-            gradle assembleDebug
-          else
-            echo "Error: No se encontró el código dentro del zip"
-            exit 1
-          fi
+          # Localizamos dónde está la carpeta del proyecto
+          PROJECT_DIR=$(find ExtractedProject -name "settings.gradle" -exec dirname {} \;)
+          cd "$PROJECT_DIR"
+          # Damos permisos al Wrapper y compilamos con él, no con el gradle global
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
-      - name: Subir APK como artefacto descargable
+      - name: Subir APK como artefacto
         uses: actions/upload-artifact@v4
         with:
           name: AutoClicker-apk
