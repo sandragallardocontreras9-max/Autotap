@@ -30,12 +30,17 @@ jobs:
 
       - name: Compilar APK
         run: |
-          # Busca el archivo gradlew en cualquier subcarpeta y muévete a su ubicación
+          echo "Contenido de la carpeta ExtractedProject:"
+          find ExtractedProject -maxdepth 3
+          
           GRADLE_PATH=$(find ExtractedProject -name "gradlew" | head -n 1)
+          
           if [ -z "$GRADLE_PATH" ]; then
-            echo "Error: No se encontró gradlew."
+            echo "¡ERROR CRÍTICO! No se encontró gradlew."
             exit 1
           fi
+          
+          echo "gradlew encontrado en: $GRADLE_PATH"
           PROJECT_DIR=$(dirname "$GRADLE_PATH")
           cd "$PROJECT_DIR"
           chmod +x gradlew
