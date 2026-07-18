@@ -28,12 +28,16 @@ jobs:
       - name: Instalar plataforma y build-tools
         run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
-      - name: Compilar APK usando Gradle Wrapper
+      - name: Compilar APK
         run: |
-          # Localizamos dónde está la carpeta del proyecto
-          PROJECT_DIR=$(find ExtractedProject -name "settings.gradle" -exec dirname {} \;)
+          # Busca el archivo gradlew en cualquier subcarpeta y muévete a su ubicación
+          GRADLE_PATH=$(find ExtractedProject -name "gradlew" | head -n 1)
+          if [ -z "$GRADLE_PATH" ]; then
+            echo "Error: No se encontró gradlew."
+            exit 1
+          fi
+          PROJECT_DIR=$(dirname "$GRADLE_PATH")
           cd "$PROJECT_DIR"
-          # Damos permisos al Wrapper y compilamos con él, no con el gradle global
           chmod +x gradlew
           ./gradlew assembleDebug
 
@@ -41,4 +45,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: AutoClicker-apk
+          # Busca el APK independientemente de la estructura de carpetas
           path: ExtractedProject/**/app/build/outputs/apk/debug/app-debug.apk
