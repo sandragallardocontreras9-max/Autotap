@@ -28,27 +28,19 @@ jobs:
       - name: Instalar plataforma y build-tools
         run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
+      # Instalamos Gradle globalmente para no depender de archivos faltantes
+      - name: Instalar Gradle
+        uses: gradle/gradle-build-action@v3
+
       - name: Compilar APK
         run: |
-          echo "Contenido de la carpeta ExtractedProject:"
-          find ExtractedProject -maxdepth 3
-          
-          GRADLE_PATH=$(find ExtractedProject -name "gradlew" | head -n 1)
-          
-          if [ -z "$GRADLE_PATH" ]; then
-            echo "¡ERROR CRÍTICO! No se encontró gradlew."
-            exit 1
-          fi
-          
-          echo "gradlew encontrado en: $GRADLE_PATH"
-          PROJECT_DIR=$(dirname "$GRADLE_PATH")
+          # Navegamos a la carpeta donde está settings.gradle
+          PROJECT_DIR=$(find ExtractedProject -name "settings.gradle" -exec dirname {} \;)
           cd "$PROJECT_DIR"
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          gradle assembleDebug
 
       - name: Subir APK como artefacto
         uses: actions/upload-artifact@v4
         with:
           name: AutoClicker-apk
-          # Busca el APK independientemente de la estructura de carpetas
           path: ExtractedProject/**/app/build/outputs/apk/debug/app-debug.apk
